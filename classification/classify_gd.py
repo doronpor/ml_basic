@@ -5,10 +5,6 @@ def relu(x):
     """ReLU activation function"""
     return np.maximum(0, x)
 
-def relu_derivative(x):
-    """Derivative of ReLU function"""
-    return (x > 0).astype(float)
-
 def softmax(x):
     """Softmax activation function"""
     exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))  # Subtract max for numerical stability
@@ -95,7 +91,7 @@ class NeuralNetworkClassifier:
         db2 = (1/batch_size) * np.sum(dZ2, axis=0, keepdims=True)
         
         # Hidden layer gradients with ReLU derivative
-        dZ1 = np.dot(dZ2, self.W2.T) * relu_derivative(self.Z1)
+        dZ1 = np.dot(dZ2, self.W2.T) * (self.Z1 > 0)
         dW1 = (1/batch_size) * X.T @ dZ1
         db1 = (1/batch_size) * np.sum(dZ1, axis=0, keepdims=True)
         
@@ -161,7 +157,7 @@ def plot_decision_boundary(model, X, y):
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
     
     # Make predictions on the mesh points
-    Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = model.predict(np.column_stack([xx.ravel(), yy.ravel()]))
     Z = Z.reshape(xx.shape)
     
     # Plot the decision boundary
