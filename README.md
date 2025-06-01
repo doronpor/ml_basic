@@ -5,7 +5,7 @@
 [![Python Tests](https://github.com/doronpor/ml_basic/actions/workflows/python-tests.yml/badge.svg)](https://github.com/doronpor/ml_basic/actions/workflows/python-tests.yml)
 [![Python Linting](https://github.com/doronpor/ml_basic/actions/workflows/linting.yml/badge.svg)](https://github.com/doronpor/ml_basic/actions/workflows/linting.yml)
 
-A collection of machine learning algorithms implemented from scratch.
+A collection of machine learning algorithms implemented from scratch with numpy.
 
 ## Installation
 
@@ -48,7 +48,7 @@ This project uses several GitHub Actions workflows for quality assurance:
    - Uses Black formatter with line length of 88
 
 2. **Python Tests**: Runs the test suite
-   - Tests on Python 3.8 and 3.9
+   - Tests on Python 3.9
    - Includes code coverage reporting
    - Uploads coverage to Codecov
 
