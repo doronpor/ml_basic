@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from regression.logistic_gd import (
     LogisticRegressionGD,
     generate_binary_classification_data,
