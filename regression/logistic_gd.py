@@ -23,12 +23,21 @@ class LogisticRegressionGD:
         Parameters:
         X: array-like of shape (n_samples, n_features)
         y: array-like of shape (n_samples,)
+
+        Raises:
+        ValueError: If X and y shapes are incompatible
         """
+        if len(X) != len(y):
+            raise ValueError(
+                f"Found input arrays with mismatched shapes: X: {X.shape}, y: {y.shape}"
+            )
+
         n_samples, n_features = X.shape
 
         # Initialize parameters
         self.weights = np.zeros(n_features)
         self.bias = 0
+        self.loss_history = []
 
         # Gradient descent
         for i in range(self.n_iterations):
@@ -57,17 +66,40 @@ class LogisticRegressionGD:
                 print(f"Iteration {i + 1}/{self.n_iterations}, Loss: {loss:.4f}")
 
     def predict_proba(self, X):
-        """Predict probability of class 1"""
-        linear_pred = np.dot(X, self.weights) + self.bias
+        """
+        Predict probability of class 1
+
+        Raises:
+        ValueError: If model hasn't been fitted
+        """
+        if self.weights is None:
+            raise ValueError("Model must be fitted before making predictions")
+
+        linear_pred = X @ self.weights + self.bias
         return self.sigmoid(linear_pred)
 
     def predict(self, X, threshold=0.5):
-        """Predict class labels (0 or 1)"""
+        """
+        Predict class labels (0 or 1)
+
+        Raises:
+        ValueError: If model hasn't been fitted
+        """
         return (self.predict_proba(X) >= threshold).astype(int)
 
 
 def generate_binary_classification_data(n_samples=100, noise=0.1):
-    """Generate synthetic data for binary classification"""
+    """
+    Generate synthetic data for binary classification
+
+    Parameters:
+    n_samples: int, number of samples (default=100)
+    noise: float, noise level (default=0.1)
+
+    Returns:
+    X: array of shape (n_samples, 2)
+    y: array of shape (n_samples,)
+    """
     # Generate two gaussian clouds
     n_samples_per_class = n_samples // 2
 
