@@ -76,7 +76,7 @@ class NeuralNetworkClassifier:
         
         # Output layer
         self.Z2 = self.A1 @ self.W2 + self.b2
-        self.A2 = softmax(self.Z2)
+        self.A2 = softmax(self.Z2) # pro
         
         return self.A2
 
@@ -91,12 +91,12 @@ class NeuralNetworkClassifier:
         
         # Output layer gradients
         dZ2 = y_pred - y_one_hot
-        dW2 = (1/batch_size) * np.dot(self.A1.T, dZ2)
+        dW2 = (1/batch_size) * self.A1.T @ dZ2
         db2 = (1/batch_size) * np.sum(dZ2, axis=0, keepdims=True)
         
         # Hidden layer gradients with ReLU derivative
         dZ1 = np.dot(dZ2, self.W2.T) * relu_derivative(self.Z1)
-        dW1 = (1/batch_size) * np.dot(X.T, dZ1)
+        dW1 = (1/batch_size) * X.T @ dZ1
         db1 = (1/batch_size) * np.sum(dZ1, axis=0, keepdims=True)
         
         # Update parameters
