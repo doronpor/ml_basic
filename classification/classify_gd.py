@@ -76,7 +76,7 @@ class NeuralNetworkClassifier:
         
         # Output layer
         self.Z2 = self.A1 @ self.W2 + self.b2
-        self.A2 = softmax(self.Z2) # pro
+        self.A2 = softmax(self.Z2) # probability distribution over classes
         
         return self.A2
 

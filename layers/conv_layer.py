@@ -117,7 +117,7 @@ class ConvLayer:
         dout_reshaped = dout.reshape(batch_size, -1, self.num_filters)
         
         # Gradient with respect to bias
-        db = np.sum(dout_reshaped, axis=(0, 1))
+        db = np.sum(dout_reshaped, axis=(0, 1)) / batch_size  # Average over batch
         db = db.reshape(1, 1, 1, -1)
         
         # Gradient with respect to W
@@ -125,6 +125,7 @@ class ConvLayer:
         for i in range(batch_size):
             dW_i = self.X_col[i].T @ dout_reshaped[i]
             dW += dW_i.reshape(self.kernel_size, self.kernel_size, self.in_c, self.num_filters)
+        dW /= batch_size  # Average over batch
         
         # Gradient with respect to X
         W_reshape = self.W.reshape(-1, self.num_filters)
