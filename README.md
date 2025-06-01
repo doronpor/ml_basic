@@ -7,6 +7,38 @@
 
 A collection of machine learning algorithms implemented from scratch.
 
+## Installation
+
+### Quick Install
+The easiest way to set up the project is to run the installation script:
+
+```bash
+python install.py
+```
+
+This will:
+1. Install all main requirements (`requirements.txt`)
+2. Install development requirements (`requirements-dev.txt`)
+3. Set up pre-commit hooks
+
+### Manual Installation
+If you prefer to install manually:
+
+1. Install main requirements:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Install development requirements (optional):
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+3. Set up pre-commit hooks (optional):
+   ```bash
+   pre-commit install
+   ```
+
 ## Workflows
 
 This project uses several GitHub Actions workflows for quality assurance:
