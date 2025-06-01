@@ -1,14 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def sigmoid(x):
-    """Sigmoid activation function"""
-    return 1 / (1 + np.exp(-np.clip(x, -500, 500)))  # Clip to avoid overflow
+def relu(x):
+    """ReLU activation function"""
+    return np.maximum(0, x)
 
-def sigmoid_derivative(x):
-    """Derivative of sigmoid function"""
-    s = sigmoid(x)
-    return s * (1 - s)
+def relu_derivative(x):
+    """Derivative of ReLU function"""
+    return (x > 0).astype(float)
 
 def softmax(x):
     """Softmax activation function"""
@@ -61,8 +60,8 @@ class NeuralNetworkClassifier:
     def __init__(self, input_size, hidden_size, output_size, learning_rate=0.01):
         self.learning_rate = learning_rate
         
-        # Initialize weights and biases
-        self.W1 = np.random.randn(input_size, hidden_size) * np.sqrt(2.0/input_size)  # He initialization
+        # Initialize weights and biases with He initialization for ReLU
+        self.W1 = np.random.randn(input_size, hidden_size) * np.sqrt(2.0/input_size)
         self.b1 = np.zeros((1, hidden_size))
         self.W2 = np.random.randn(hidden_size, output_size) * np.sqrt(2.0/hidden_size)
         self.b2 = np.zeros((1, output_size))
@@ -71,12 +70,12 @@ class NeuralNetworkClassifier:
 
     def forward(self, X):
         """Forward pass"""
-        # Hidden layer
-        self.Z1 = np.dot(X, self.W1) + self.b1
-        self.A1 = sigmoid(self.Z1)
+        # Hidden layer with ReLU
+        self.Z1 = X @ self.W1 + self.b1
+        self.A1 = relu(self.Z1)
         
         # Output layer
-        self.Z2 = np.dot(self.A1, self.W2) + self.b2
+        self.Z2 = self.A1 @ self.W2 + self.b2
         self.A2 = softmax(self.Z2)
         
         return self.A2
@@ -95,8 +94,8 @@ class NeuralNetworkClassifier:
         dW2 = (1/batch_size) * np.dot(self.A1.T, dZ2)
         db2 = (1/batch_size) * np.sum(dZ2, axis=0, keepdims=True)
         
-        # Hidden layer gradients
-        dZ1 = np.dot(dZ2, self.W2.T) * sigmoid_derivative(self.Z1)
+        # Hidden layer gradients with ReLU derivative
+        dZ1 = np.dot(dZ2, self.W2.T) * relu_derivative(self.Z1)
         dW1 = (1/batch_size) * np.dot(X.T, dZ1)
         db1 = (1/batch_size) * np.sum(dZ1, axis=0, keepdims=True)
         
