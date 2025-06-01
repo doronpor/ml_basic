@@ -26,12 +26,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-cov numpy matplotlib
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
     
     - name: Run tests with pytest
       run: |
-        pytest --cov=./ --cov-report=xml
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        fail_ci_if_error: true 
+        pytest --no-cov-on-fail --cov=./ --cov-report=term-missing:skip-covered 

@@ -1,22 +1,25 @@
+from typing import Optional, Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 
 
 class LogisticRegressionGD:
-    def __init__(self, learning_rate=0.01, n_iterations=1000):
+    def __init__(self, learning_rate: float = 0.01, n_iterations: int = 1000) -> None:
         self.learning_rate = learning_rate
         self.n_iterations = n_iterations
-        self.weights = None
-        self.bias = None
-        self.loss_history = []
+        self.weights: Optional[npt.NDArray[np.float64]] = None
+        self.bias: Optional[float] = None
+        self.loss_history: list[float] = []
 
-    def sigmoid(self, z):
+    def sigmoid(self, z: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Sigmoid activation function"""
         # Clip z to avoid overflow in exp
         z = np.clip(z, -500, 500)
         return 1 / (1 + np.exp(-z))
 
-    def fit(self, X, y):
+    def fit(self, X: npt.NDArray[np.float64], y: npt.NDArray[np.float64]) -> None:
         """
         Fit the logistic regression model using gradient descent
 
@@ -36,7 +39,7 @@ class LogisticRegressionGD:
 
         # Initialize parameters
         self.weights = np.zeros(n_features)
-        self.bias = 0
+        self.bias = 0.0
         self.loss_history = []
 
         # Gradient descent
@@ -65,30 +68,62 @@ class LogisticRegressionGD:
             if (i + 1) % 100 == 0:
                 print(f"Iteration {i + 1}/{self.n_iterations}, Loss: {loss:.4f}")
 
-    def predict_proba(self, X):
+    def predict_proba(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """
         Predict probability of class 1
 
-        Raises:
-        ValueError: If model hasn't been fitted
-        """
-        if self.weights is None:
-            raise ValueError("Model must be fitted before making predictions")
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data
 
+        Returns
+        -------
+        array-like of shape (n_samples,)
+            Predicted probabilities
+
+        Raises
+        ------
+        ValueError
+            If model hasn't been fitted yet
+        """
+        if self.weights is None or self.bias is None:
+            raise ValueError("Model must be fitted before making predictions")
         linear_pred = X @ self.weights + self.bias
         return self.sigmoid(linear_pred)
 
-    def predict(self, X, threshold=0.5):
+    def predict(
+        self, X: npt.NDArray[np.float64], threshold: float = 0.5
+    ) -> npt.NDArray[np.int64]:
         """
         Predict class labels (0 or 1)
 
-        Raises:
-        ValueError: If model hasn't been fitted
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data
+        threshold : float, default=0.5
+            Decision threshold for binary classification
+
+        Returns
+        -------
+        array-like of shape (n_samples,)
+            Predicted class labels
+
+        Raises
+        ------
+        ValueError
+            If model hasn't been fitted yet
         """
-        return (self.predict_proba(X) >= threshold).astype(int)
+        if self.weights is None or self.bias is None:
+            raise ValueError("Model must be fitted before making predictions")
+        linear_pred = X @ self.weights + self.bias
+        return (self.sigmoid(linear_pred) >= threshold).astype(np.int64)
 
 
-def generate_binary_classification_data(n_samples=100, noise=0.1):
+def generate_binary_classification_data(
+    n_samples: int = 100, noise: float = 0.1
+) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     """
     Generate synthetic data for binary classification
 
@@ -121,7 +156,9 @@ def generate_binary_classification_data(n_samples=100, noise=0.1):
     return X, y
 
 
-def plot_decision_boundary(model, X, y):
+def plot_decision_boundary(
+    model: LogisticRegressionGD, X: npt.NDArray[np.float64], y: npt.NDArray[np.float64]
+) -> None:
     """Plot the decision boundary"""
     # Set min and max values for plotting
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1

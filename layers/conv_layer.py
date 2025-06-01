@@ -1,8 +1,18 @@
+from typing import Optional, Tuple
+
 import numpy as np
+import numpy.typing as npt
 
 
 class ConvLayer:
-    def __init__(self, input_shape, kernel_size, num_filters, stride=1, padding=0):
+    def __init__(
+        self,
+        input_shape: Tuple[int, int, int],
+        kernel_size: int,
+        num_filters: int,
+        stride: int = 1,
+        padding: int = 0,
+    ) -> None:
         """
         Initialize convolutional layer
         input_shape: (height, width, channels)
@@ -21,17 +31,20 @@ class ConvLayer:
         self.out_w = (self.in_w - kernel_size + 2 * padding) // stride + 1
 
         # Initialize weights and bias with He initialization
-        self.W = np.random.randn(
+        self.W: npt.NDArray[np.float64] = np.random.randn(
             kernel_size, kernel_size, self.in_c, num_filters
         ) * np.sqrt(2.0 / (kernel_size * kernel_size * self.in_c))
-        self.b = np.zeros((1, 1, 1, num_filters))
+        self.b: npt.NDArray[np.float64] = np.zeros((1, 1, 1, num_filters))
 
         # Cache for backward pass
-        self.X_col = None
-        self.W_col = None
-        self.X_pad = None
+        self.X: Optional[npt.NDArray[np.float64]] = None
+        self.X_col: Optional[npt.NDArray[np.float64]] = None
+        self.W_col: Optional[npt.NDArray[np.float64]] = None
+        self.X_pad: Optional[npt.NDArray[np.float64]] = None
 
-    def im2col(self, X, h_out, w_out):
+    def im2col(
+        self, X: npt.NDArray[np.float64], h_out: int, w_out: int
+    ) -> npt.NDArray[np.float64]:
         """Convert input image to columns for efficient convolution"""
         X_padded = np.pad(
             X,
@@ -67,12 +80,14 @@ class ConvLayer:
 
         return X_col
 
-    def col2im(self, dX_col, X_shape):
+    def col2im(
+        self, dX_col: npt.NDArray[np.float64], X_shape: Tuple[int, int, int, int]
+    ) -> npt.NDArray[np.float64]:
         """Convert columns back to image format"""
         batch_size, h, w, c = X_shape
         h_pad = h + 2 * self.padding
         w_pad = w + 2 * self.padding
-        dX_pad = np.zeros((batch_size, h_pad, w_pad, c))
+        dX_pad = np.zeros((batch_size, h_pad, w_pad, c), dtype=np.float64)
 
         for h in range(self.out_h):
             for w in range(self.out_w):
@@ -97,7 +112,7 @@ class ConvLayer:
 
         return dX
 
-    def forward(self, X):
+    def forward(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """
         Forward pass of convolution
         X: Input of shape (batch_size, height, width, channels)
@@ -120,14 +135,21 @@ class ConvLayer:
         )  # Shape: (batch_size, h*w, num_filters)
         out = out.reshape(batch_size, self.out_h, self.out_w, self.num_filters)
 
-        return out
+        return out.astype(np.float64)
 
-    def backward(self, dout):
+    def backward(
+        self, dout: npt.NDArray[np.float64]
+    ) -> Tuple[
+        npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]
+    ]:
         """
         Backward pass of convolution
         dout: Gradient of loss with respect to output
         Returns: (dX, dW, db) gradients with respect to input, weights, and bias
         """
+        if self.X is None or self.X_col is None:
+            raise ValueError("Forward pass must be called before backward pass")
+
         batch_size = dout.shape[0]
 
         # Reshape dout
@@ -152,7 +174,9 @@ class ConvLayer:
         for i in range(batch_size):
             dX_col[i] = dout_reshaped[i] @ W_reshape.T
 
-        dX = self.col2im(dX_col, self.X.shape)
+        dX = self.col2im(
+            dX_col, (self.X.shape[0], self.X.shape[1], self.X.shape[2], self.X.shape[3])
+        )
 
         return dX, dW, db
 

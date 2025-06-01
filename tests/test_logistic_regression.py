@@ -7,7 +7,7 @@ from regression.logistic_gd import (
 )
 
 
-def test_logistic_regression_initialization():
+def test_logistic_regression_initialization() -> None:
     """Test the initialization of LogisticRegression model"""
     model = LogisticRegressionGD(learning_rate=0.01, n_iterations=100)
     assert model.learning_rate == 0.01
@@ -17,18 +17,18 @@ def test_logistic_regression_initialization():
     assert len(model.loss_history) == 0
 
 
-def test_sigmoid_function():
+def test_sigmoid_function() -> None:
     """Test the sigmoid activation function"""
     model = LogisticRegressionGD()
 
     # Test sigmoid with zero
-    assert model.sigmoid(0) == 0.5
+    assert model.sigmoid(np.array([0])) == 0.5
 
     # Test sigmoid with large positive number
-    assert model.sigmoid(100) > 0.99
+    assert model.sigmoid(np.array([100])) > 0.99
 
     # Test sigmoid with large negative number
-    assert model.sigmoid(-100) < 0.01
+    assert model.sigmoid(np.array([-100])) < 0.01
 
     # Test sigmoid with array
     x = np.array([-1, 0, 1])
@@ -38,11 +38,11 @@ def test_sigmoid_function():
     assert np.all((result >= 0) & (result <= 1))
 
 
-def test_prediction_shape():
+def test_prediction_shape() -> None:
     """Test the shape of predictions"""
     model = LogisticRegressionGD()
     X = np.random.randn(100, 5)  # 100 samples, 5 features
-    y = np.random.randint(0, 2, 100)  # Binary labels
+    y = np.random.randint(0, 2, 100).astype(np.float64)  # Binary labels
 
     model.fit(X, y)
 
@@ -57,13 +57,13 @@ def test_prediction_shape():
     assert np.all((predictions == 0) | (predictions == 1))
 
 
-def test_model_training():
+def test_model_training() -> None:
     """Test if model can fit simple data and converge"""
     # Generate simple separable data
     X = np.array(
         [[1, 1], [2, 2], [2, 1], [3, 3], [-1, -1], [-2, -2], [-2, -1], [-3, -3]]
     )
-    y = np.array([1, 1, 1, 1, 0, 0, 0, 0])
+    y = np.array([1, 1, 1, 1, 0, 0, 0, 0], dtype=np.float64)
 
     model = LogisticRegressionGD(learning_rate=0.1, n_iterations=1000)
     model.fit(X, y)
@@ -79,7 +79,7 @@ def test_model_training():
     )  # Should achieve at least 75% accuracy on this simple dataset
 
 
-def test_generate_binary_classification_data():
+def test_generate_binary_classification_data() -> None:
     """Test the data generation function"""
     n_samples = 200
     X, y = generate_binary_classification_data(n_samples=n_samples, noise=0.1)
@@ -97,7 +97,7 @@ def test_generate_binary_classification_data():
     assert abs(n_zeros - n_ones) <= 1  # Should be balanced
 
 
-def test_error_handling():
+def test_error_handling() -> None:
     """Test error handling in the model"""
     model = LogisticRegressionGD()
 

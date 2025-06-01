@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 
-def install_requirements():
+def install_requirements() -> None:
     """Install both main and development requirements."""
     print("Installing main requirements...")
     subprocess.check_call(

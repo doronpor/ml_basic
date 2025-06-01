@@ -1,16 +1,47 @@
+from typing import Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 
 
 class LeastSquaresGD:
-    def __init__(self, learning_rate=0.01, n_iterations=1000):
+    """
+    Least Squares regression using gradient descent optimization.
+
+    This class implements multivariate least squares regression for multiple targets,
+    optimizing the parameters using gradient descent.
+
+    Parameters
+    ----------
+    learning_rate : float, default=0.01
+        The step size used in gradient descent optimization
+    n_iterations : int, default=1000
+        Number of iterations for gradient descent
+    """
+
+    def __init__(self, learning_rate: float = 0.01, n_iterations: int = 1000) -> None:
         self.learning_rate = learning_rate
         self.n_iterations = n_iterations
-        self.weights = None
-        self.bias = None
-        self.loss_history = []
+        self.weights: Optional[npt.NDArray[np.float64]] = None
+        self.bias: Optional[npt.NDArray[np.float64]] = None
+        self.loss_history: list[float] = []
 
-    def fit(self, X, y):
+    def fit(self, X: npt.NDArray[np.float64], y: npt.NDArray[np.float64]) -> None:
+        """
+        Fit the least squares model using gradient descent.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data
+        y : array-like of shape (n_samples, n_targets)
+            Target values
+
+        Returns
+        -------
+        None
+        """
         # Initialize parameters
         n_samples, n_features = X.shape
         _, n_targets = y.shape
@@ -34,7 +65,27 @@ class LeastSquaresGD:
             loss = np.mean((y_predicted - y) ** 2)
             self.loss_history.append(loss)
 
-    def predict(self, X):
+    def predict(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        """
+        Make predictions for given input data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data
+
+        Returns
+        -------
+        array-like of shape (n_samples, n_targets)
+            Predicted values
+
+        Raises
+        ------
+        ValueError
+            If model hasn't been fitted yet
+        """
+        if self.weights is None or self.bias is None:
+            raise ValueError("Model must be fitted before making predictions")
         return X @ self.weights + self.bias
 
 

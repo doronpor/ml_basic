@@ -1,24 +1,29 @@
+from typing import List, Optional, Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 
 
-def relu(x):
+def relu(x: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """ReLU activation function"""
     return np.maximum(0, x)
 
 
-def softmax(x):
+def softmax(x: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     """Softmax activation function"""
     exp_x = np.exp(
         x - np.max(x, axis=1, keepdims=True)
     )  # Subtract max for numerical stability
-    return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+    return exp_x / np.sum(exp_x, axis=1, keepdims=True).astype(np.float64)
 
 
-def generate_spiral_data(n_samples_per_class=100, n_classes=3, noise=0.1):
+def generate_spiral_data(
+    n_samples_per_class: int = 100, n_classes: int = 3, noise: float = 0.1
+) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.int64]]:
     """Generate spiral data for classification"""
-    X = []
-    y = []
+    X: List[npt.NDArray[np.float64]] = []
+    y: List[int] = []
 
     for i in range(n_classes):
         r = np.linspace(0.0, 1, n_samples_per_class)
@@ -29,17 +34,29 @@ def generate_spiral_data(n_samples_per_class=100, n_classes=3, noise=0.1):
         X.append(np.column_stack((r * np.sin(t * 2.5), r * np.cos(t * 2.5))))
         y.extend([i] * n_samples_per_class)
 
-    return np.vstack(X), np.array(y)
+    return np.vstack(X), np.array(y, dtype=np.int64)
 
 
-def standardize(X):
+def standardize(
+    X: npt.NDArray[np.float64],
+) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     """Standardize features to have zero mean and unit variance"""
     mean = np.mean(X, axis=0)
     std = np.std(X, axis=0)
     return (X - mean) / (std + 1e-8), mean, std
 
 
-def train_test_split(X, y, test_size=0.2, random_seed=None):
+def train_test_split(
+    X: npt.NDArray[np.float64],
+    y: npt.NDArray[np.int64],
+    test_size: float = 0.2,
+    random_seed: Optional[int] = None,
+) -> Tuple[
+    npt.NDArray[np.float64],
+    npt.NDArray[np.float64],
+    npt.NDArray[np.int64],
+    npt.NDArray[np.int64],
+]:
     """Split data into training and test sets"""
     if random_seed is not None:
         np.random.seed(random_seed)
@@ -64,18 +81,34 @@ def train_test_split(X, y, test_size=0.2, random_seed=None):
 
 
 class NeuralNetworkClassifier:
-    def __init__(self, input_size, hidden_size, output_size, learning_rate=0.01):
+    def __init__(
+        self,
+        input_size: int,
+        hidden_size: int,
+        output_size: int,
+        learning_rate: float = 0.01,
+    ) -> None:
         self.learning_rate = learning_rate
 
         # Initialize weights and biases with He initialization for ReLU
-        self.W1 = np.random.randn(input_size, hidden_size) * np.sqrt(2.0 / input_size)
-        self.b1 = np.zeros((1, hidden_size))
-        self.W2 = np.random.randn(hidden_size, output_size) * np.sqrt(2.0 / hidden_size)
-        self.b2 = np.zeros((1, output_size))
+        self.W1: npt.NDArray[np.float64] = np.random.randn(
+            input_size, hidden_size
+        ) * np.sqrt(2.0 / input_size)
+        self.b1: npt.NDArray[np.float64] = np.zeros((1, hidden_size))
+        self.W2: npt.NDArray[np.float64] = np.random.randn(
+            hidden_size, output_size
+        ) * np.sqrt(2.0 / hidden_size)
+        self.b2: npt.NDArray[np.float64] = np.zeros((1, output_size))
 
-        self.loss_history = []
+        self.loss_history: List[float] = []
 
-    def forward(self, X):
+        # Cache for intermediate values
+        self.Z1: Optional[npt.NDArray[np.float64]] = None
+        self.A1: Optional[npt.NDArray[np.float64]] = None
+        self.Z2: Optional[npt.NDArray[np.float64]] = None
+        self.A2: Optional[npt.NDArray[np.float64]] = None
+
+    def forward(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Forward pass"""
         # Hidden layer with ReLU
         self.Z1 = X @ self.W1 + self.b1
@@ -87,14 +120,23 @@ class NeuralNetworkClassifier:
 
         return self.A2
 
-    def backward(self, X, y, y_pred, batch_size):
+    def backward(
+        self,
+        X: npt.NDArray[np.float64],
+        y: npt.NDArray[np.int64],
+        y_pred: npt.NDArray[np.float64],
+        batch_size: int,
+    ) -> None:
         """Backward pass"""
+        if self.Z1 is None or self.A1 is None:
+            raise ValueError("Forward pass must be called before backward pass")
+
         # Convert y to one-hot encoding if it's not already
         if y.ndim == 1:
-            y_one_hot = np.zeros((y.size, y_pred.shape[1]))
+            y_one_hot = np.zeros((y.size, y_pred.shape[1]), dtype=np.float64)
             y_one_hot[np.arange(y.size), y] = 1
         else:
-            y_one_hot = y
+            y_one_hot = y.astype(np.float64)
 
         # Output layer gradients
         dZ2 = y_pred - y_one_hot
@@ -112,7 +154,13 @@ class NeuralNetworkClassifier:
         self.W1 -= self.learning_rate * dW1
         self.b1 -= self.learning_rate * db1
 
-    def fit(self, X, y, batch_size=32, epochs=100):
+    def fit(
+        self,
+        X: npt.NDArray[np.float64],
+        y: npt.NDArray[np.int64],
+        batch_size: int = 32,
+        epochs: int = 100,
+    ) -> None:
         n_samples = X.shape[0]
         n_batches = int(np.ceil(n_samples / batch_size))
 
@@ -122,7 +170,7 @@ class NeuralNetworkClassifier:
             X_shuffled = X[indices]
             y_shuffled = y[indices]
 
-            epoch_loss = 0
+            epoch_loss = 0.0
 
             # Mini-batch training
             for i in range(n_batches):
@@ -136,7 +184,9 @@ class NeuralNetworkClassifier:
                 y_pred = self.forward(X_batch)
 
                 # Compute loss
-                y_batch_one_hot = np.zeros((y_batch.size, y_pred.shape[1]))
+                y_batch_one_hot = np.zeros(
+                    (y_batch.size, y_pred.shape[1]), dtype=np.float64
+                )
                 y_batch_one_hot[np.arange(y_batch.size), y_batch] = 1
                 batch_loss = -np.mean(y_batch_one_hot * np.log(y_pred + 1e-15))
                 epoch_loss += batch_loss
@@ -151,17 +201,21 @@ class NeuralNetworkClassifier:
             if (epoch + 1) % 10 == 0:
                 print(f"Epoch {epoch + 1}/{epochs}, Loss: {self.loss_history[-1]:.4f}")
 
-    def predict(self, X):
+    def predict(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.int64]:
         """Predict class labels"""
         y_pred = self.forward(X)
-        return np.argmax(y_pred, axis=1)
+        return np.argmax(y_pred, axis=1).astype(np.int64)
 
-    def predict_proba(self, X):
+    def predict_proba(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Predict class probabilities"""
         return self.forward(X)
 
 
-def plot_decision_boundary(model, X, y):
+def plot_decision_boundary(
+    model: NeuralNetworkClassifier,
+    X: npt.NDArray[np.float64],
+    y: npt.NDArray[np.int64],
+) -> None:
     """Plot the decision boundary of the model"""
     h = 0.02  # Step size in the mesh
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
@@ -169,7 +223,8 @@ def plot_decision_boundary(model, X, y):
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
 
     # Make predictions on the mesh points
-    Z = model.predict(np.column_stack([xx.ravel(), yy.ravel()]))
+    mesh_points = np.column_stack([xx.ravel(), yy.ravel()])
+    Z = model.predict(mesh_points)
     Z = Z.reshape(xx.shape)
 
     # Plot the decision boundary

@@ -21,3 +21,26 @@ repos:
         args: [--max-line-length=88, --extend-ignore=E203]
         stages: [commit]
 
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.4.1
+    hooks:
+    -   id: mypy
+        additional_dependencies:
+            - types-setuptools
+            - numpy
+            - types-PyYAML
+        args: [
+            --python-version=3.9,
+            --warn-unused-configs,
+            --disallow-untyped-defs,
+            --disallow-incomplete-defs,
+            --check-untyped-defs,
+            --disallow-untyped-decorators,
+            --no-implicit-optional,
+            --warn-redundant-casts,
+            --warn-unused-ignores,
+            --warn-no-return,
+            --warn-unreachable
+        ]
+        stages: [commit]
+
