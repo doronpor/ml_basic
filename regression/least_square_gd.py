@@ -19,7 +19,7 @@ class LeastSquaresGD:
         # Gradient descent
         for _ in range(self.n_iterations):
             # Forward pass
-            y_predicted = X @ self.weights + self.bias
+            y_predicted = self.predict(X)
             
             # Compute gradients
             dw = (1/n_samples) * X.T @ (y_predicted - y)
